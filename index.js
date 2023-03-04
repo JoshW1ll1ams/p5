@@ -1,68 +1,74 @@
-let grid;
-const scale = 5;
-const rows = 100;
-const cols = 100;
+//GLOBAL VARIABLES
+let particles = [];
+//create an object to hold the Kinect data
 
 function setup() {
-  createCanvas(rows * scale, cols * scale);
-  grid = createGrid();
-}
+  createCanvas(window.innerWidth, window.innerHeight);
 
+  const particlesLength = window.innerWidth*window.innerWidth; //number of Particles is 3 times width of the window
+
+  for (let i = 0; i < particlesLength; i++) {
+    particles.push(new Particle());
+  }
+}
+let counter = 0;
 function draw() {
-  background(255);
+  background(0);
 
-  // update and render the grid
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < cols; j++) {
-      grid[i][j].update();
-      grid[i][j].render();
-    }
-  }
+  let mousePos = createVector(mouseX, mouseY); //replace with Kinect data
+
+  for(let i =0; i < counter; i++) {
+   
+    particles[i].update();
+    particles[i].draw();
+  };
+
 }
 
-function createGrid() {
-  // create a 2D array of particles
-  let grid = new Array(rows);
-  for (let i = 0; i < rows; i++) {
-    grid[i] = new Array(cols);
-    for (let j = 0; j < cols; j++) {
-      grid[i][j] = new Particle(i * scale, j * scale);
-    }
-  }
-  return grid;
+function mouseClicked()
+{
+  counter ++;
 }
 
 class Particle {
-  constructor(x, y) {
-    this.pos = createVector(x, y);
-    this.vel = createVector(0, 0);
-    this.acc = createVector(0, 0);
-    this.color = color(255, 0, 0); // set color to red
+
+  constructor() {
+    this.pos = createVector(100, 100);
+    this.size = random(1, 2);
+    this.color = random(100, 255); //define how see thru each particle is
+    this.vel = createVector(random(-1, 1), random(-1, 1))
+    this.acc = createVector(0, random(-0.1, 0.1)); //set the acceleration of each particle
+ //set the mass of each particle to be the same as its size 
   }
 
-  applyForce(force) {
-    this.acc.add(force);
+  //Draw a single Particle
+  draw() {
+    noStroke();
+    fill(this.color);
+    rect(this.pos.x, this.pos.y, this.size);
+
   }
 
+  //Particle rises or falls and bounces off the edges
   update() {
-    // apply gravity
-    this.applyForce(createVector(0, 0.1));
+    this.pos.add(this.vel); //add velocity to the x, y positions to make it move
+    this.vel.add(this.acc); //add acceleration to the velocity to mimic physics
+    // Detect edges on update
+    this.detectEdges();
+  }
 
-    // update velocity and position
-    this.vel.add(this.acc);
-    this.pos.add(this.vel);
+  detectEdges() {
+    // If the Particle touches the left or right edges of the canvas,
+    // it will reverse direction.
+    if(this.pos.x < 0 || this.pos.x > width) {
+      this.vel.x *= -1;
+    }
 
-    // reset acceleration
-    this.acc.mult(0);
-
-    // check if particle has reached the bottom
-    if (this.pos.y >= height - scale) {
-      this.vel.mult(0); // stop moving
+    // If the Particle touches the top or bottom edges of the canvas,
+    // it will reverse direction.
+    if(this.pos.y < 0 || this.pos.y > height) {
+      this.vel.y *= -1;
     }
   }
 
-  render() {
-    fill(this.color);
-    rect(this.pos.x, this.pos.y, scale, scale);
-  }
 }
